@@ -2,10 +2,16 @@
   "name": "@rpominov/rescript-promise",
   "version": "0.1.0",
   "namespace": false,
-  "sources": {
-    "dir": ".",
-    "subdirs": false
-  },
+  "sources": [
+    {
+      "dir": ".",
+      "subdirs": false
+    },
+    {
+      "dir": "tests",
+      "subdirs": false
+    }
+  ],
   "package-specs": {
     "module": "commonjs",
     "in-source": true

@@ -1,17 +1,21 @@
 type t<+'a> = Js.Promise.t<'a>
 
+type promiseLike
+exception NestedPromise({rescripMessage: string, nestedPromise: promiseLike})
+
 type unknown
-let assertNotPromiseLike: unknown => unit = %raw(`(obj) => {
-  if (obj != null && typeof obj.then === 'function') {
-    const err = new Error('Cannot create a Promise containing another Promise');
-    err.__nestedPromise = obj
-    throw err
-  }
-}`)
+let isPromiseLike: unknown => bool = %raw(`(obj) => obj != null && typeof obj.then === 'function'`)
 
 @scope("Promise") @val external resolve: 'a => t<'a> = "resolve"
 let resolve = x => {
-  assertNotPromiseLike(x->Obj.magic)
+  if isPromiseLike(x->Obj.magic) {
+    raise(
+      NestedPromise({
+        rescripMessage: "Cannot create a Promise containing another Promise as this will break ReScript static types",
+        nestedPromise: x->Obj.magic,
+      }),
+    )
+  }
   resolve(x)
 }
 
@@ -32,7 +36,14 @@ external make: (@uncurry (((. 'a) => unit) => unit)) => t<'a> = "Promise"
 let make = fn =>
   make(resolve =>
     fn(x => {
-      assertNotPromiseLike(x->Obj.magic)
+      if isPromiseLike(x->Obj.magic) {
+        raise(
+          NestedPromise({
+            rescripMessage: "Cannot create a Promise containing another Promise as this will break ReScript static types",
+            nestedPromise: x->Obj.magic,
+          }),
+        )
+      }
       resolve(. x)
     })
   )
@@ -50,7 +61,7 @@ let chain = (promise, fn) => promise->then((. x) => x->fn, None)
 let map = (promise, fn) => promise->then((. x) => x->fn->resolve, None)
 
 let crash = exn => {
-  Js.Console.error("Unexpected Promise rejection!")
+  Js.Console.error("Unrecoverable Promise rejection!")
   switch exn {
   | Js.Exn.Error(jsExn) => Js.Console.error(jsExn)
   | _ => Js.Console.error(exn)

@@ -5,7 +5,8 @@
   "scripts": {
     "build": "rescript",
     "clean": "rescript clean -with-deps",
-    "start": "rescript build -w"
+    "start": "rescript build -w",
+    "test": "jest"
   },
   "keywords": [
     "rescript",
@@ -20,5 +21,13 @@
   "license": "MIT",
   "dependencies": {
     "rescript": "^9.1.4"
+  },
+  "devDependencies": {
+    "jest": "^27.5.1"
+  },
+  "jest": {
+    "testMatch": [
+      "**/*.test.bs.js"
+    ]
   }
 }

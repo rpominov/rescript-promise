@@ -5,25 +5,36 @@ var Curry = require("rescript/lib/js/curry.js");
 var Js_exn = require("rescript/lib/js/js_exn.js");
 var Process = require("process");
 var Caml_array = require("rescript/lib/js/caml_array.js");
+var Caml_exceptions = require("rescript/lib/js/caml_exceptions.js");
 var Caml_js_exceptions = require("rescript/lib/js/caml_js_exceptions.js");
 
-var assertNotPromiseLike = ((obj) => {
-  if (obj != null && typeof obj.then === 'function') {
-    const err = new Error('Cannot create a Promise containing another Promise');
-    err.__nestedPromise = obj
-    throw err
-  }
-});
+var NestedPromise = /* @__PURE__ */Caml_exceptions.create("Promise.NestedPromise");
+
+var isPromiseLike = ((obj) => obj != null && typeof obj.then === 'function');
 
 function resolve(x) {
-  assertNotPromiseLike(x);
+  if (isPromiseLike(x)) {
+    throw {
+          RE_EXN_ID: NestedPromise,
+          rescripMessage: "Cannot create a Promise containing another Promise as this will break ReScript static types",
+          nestedPromise: x,
+          Error: new Error()
+        };
+  }
   return Promise.resolve(x);
 }
 
 function make(fn) {
   return new Promise((function (resolve) {
                 return Curry._1(fn, (function (x) {
-                              assertNotPromiseLike(x);
+                              if (isPromiseLike(x)) {
+                                throw {
+                                      RE_EXN_ID: NestedPromise,
+                                      rescripMessage: "Cannot create a Promise containing another Promise as this will break ReScript static types",
+                                      nestedPromise: x,
+                                      Error: new Error()
+                                    };
+                              }
                               return resolve(x);
                             }));
               }));
@@ -54,7 +65,7 @@ function map(promise, fn) {
 }
 
 function crash(exn) {
-  console.error("Unexpected Promise rejection!");
+  console.error("Unrecoverable Promise rejection!");
   if (exn.RE_EXN_ID === Js_exn.$$Error) {
     console.error(exn._1);
   } else {
@@ -166,6 +177,7 @@ function all6(prim) {
   return Promise.all(prim);
 }
 
+exports.NestedPromise = NestedPromise;
 exports.resolve = resolve;
 exports.reject = reject;
 exports.race = race;

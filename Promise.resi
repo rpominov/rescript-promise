@@ -1,5 +1,8 @@
 type t<+'a> = Js.Promise.t<'a>
 
+type promiseLike
+exception NestedPromise({rescripMessage: string, nestedPromise: promiseLike})
+
 let resolve: 'a => t<'a>
 
 let reject: exn => t<'a>
@@ -24,7 +27,7 @@ let chain: (t<'a>, 'a => t<'b>) => t<'b>
 let map: (t<'a>, 'a => 'b) => t<'b>
 
 @ocaml.doc(
-  "Will crash the node process if the promise is rejected or if the callback throw an error.\nMake sure to catch the errors if that is undesirable, or use `chain` instead."
+  "Will crash the node process if the promise is rejected or if the callback throws an error.\nMake sure to catch the errors if that is undesirable, or use `chain` instead."
 )
 let done: (t<'a>, 'a => unit) => unit
 
