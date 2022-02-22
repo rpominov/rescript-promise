@@ -1,7 +1,7 @@
 {
-  "name": "rescript-project-template",
-  "version": "0.0.1",
-  "namespace": true,
+  "name": "@rpominov/rescript-promise",
+  "version": "0.1.0",
+  "namespace": false,
   "sources": {
     "dir": ".",
     "subdirs": false
