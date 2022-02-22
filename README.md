@@ -1,4 +1,4 @@
-# rescript-promise
+# @rpominov/rescript-promise
 
 Another Promise bindings for ReScript.
 
@@ -123,11 +123,11 @@ This works the same as in `try..catch`: https://rescript-lang.org/docs/manual/la
 
 ### `Promise.chain: (Promise.t<'a>, 'a => Promise.t<'b>) => Promise.t<'b>`
 
-`promise->Promise.chain(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScrip, where `fn` returns a promise.
+`promise->Promise.chain(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScript, where `fn` returns a promise.
 
 ### `Promise.map: (Promise.t<'a>, 'a => 'b) => Promise.t<'b>`
 
-`promise->Promise.map(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScrip, where `fn` returns something other than promise.
+`promise->Promise.map(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScript, where `fn` returns something other than promise.
 
 Note: if `fn` returns a promise, will reject with `Promise.NestedPromise`!
 
@@ -137,11 +137,11 @@ TODO
 
 ### `Promise.race: array<Promise.t<'a>> => Promise.t<'a>`
 
-The same as [`Promise.race(array)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race) in JavaScrip.
+The same as [`Promise.race(array)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race) in JavaScript.
 
 ### `Promise.all: array<Promise.t<'a>> => Promise.t<array<'a>>`
 
-The same as [`Promise.all(array)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) in JavaScrip.
+The same as [`Promise.all(array)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) in JavaScript.
 
 ### `Promise.all2: ((Promise.t<'a>, Promise.t<'b>)) => Promise.t<('a, 'b)>`
 
