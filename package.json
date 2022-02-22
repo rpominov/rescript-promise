@@ -1,0 +1,24 @@
+{
+  "name": "rescript-project-template",
+  "version": "0.0.1",
+  "description": "Rescrip project template",
+  "main": "./Main.bs.js",
+  "scripts": {
+    "build": "rescript",
+    "clean": "rescript clean -with-deps",
+    "start": "rescript build -w"
+  },
+  "keywords": [
+    "rescript"
+  ],
+  "contributors": [
+    "Roman Pominov"
+  ],
+  "homepage": "https://github.com/rpominov/rescript-project-template#readme",
+  "bugs": "https://github.com/rpominov/rescript-project-template/issues",
+  "repository": "github:rpominov/rescript-project-template",
+  "license": "MIT",
+  "dependencies": {
+    "rescript": "*"
+  }
+}
