@@ -8,7 +8,7 @@ Features:
 
 - Does not allow to create `Promise.t<Promise.t<'a>>` as this is not possible in the underlying JavaScript implementation. The library will throw an exception if you try to create such a value.
 - Provides some utilities for `Promise.t<result<'a, 'b>>`.
-- Might not work in the browser as it uses some node APIs like `process.exit()`
+- Might not work in the browser as it uses some NodeJS APIs like `process.exit()`
 
 ## Installation
 
@@ -47,18 +47,12 @@ Just an alias for `Js.Promise.t<'a>`
 
 ### `Promise.resolve: 'a => Promise.t<'a>`
 
-Creates a promise containing the given value.
+The same as [`Promise.resolve(value)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve) in JavaScript.
 
-```rescript
-Promise.resolve(1)->Promise.done(x => {
-  Js.log(x) // 1
-})
-```
-
-If the given value is a promise-like object, will `raise` a `Promise.NestedPromise` exception.
-This is necessary because underlying JavaScript implementation of `Promise.resolve()`
-automatically flattens any `Promise.t<Promise.t<'a>>` into `Promise.t<'a>`,
-and this special case behavior cannot be expressed with ReScript type system.
+If the given value is a promise-like object, will raise a `Promise.NestedPromise` exception.
+This is necessary because the underlying JavaScript implementation
+automatically flattens any `Promise.t<Promise.t<'a>>` into a `Promise.t<'a>`,
+but this special case behavior cannot be expressed with ReScript type system.
 
 ```rescript
 // This will raise an exception!
@@ -70,27 +64,17 @@ but with any object that has a `then` property, that happens to be a function.
 
 ### `Promise.make: (('a => unit) => unit) => Promise.t<'a>`
 
-TODO
+`Promise.make(resolve => resolve(val))` is the same as `new Promise(resolve => resolve(val))` in JavaScript.
+
+The reject callback is not provided by design.
+Resolve with a `result`'s `Error` instead or use `Js.Promise.make`.
+
+If you pass a promise into `resolve()`,
+a `Promise.NestedPromise` exception will be raised (same as with `Promise.resolve` above)!
 
 ### `Promise.reject: exn => Promise.t<'a>`
 
-Creates a rejected promise containing the given exception.
-
-```rescript
-Promise.reject(Not_found)
-->Promise.catch(exn =>
-  switch exn {
-  | Not_found => "Not found"
-  | _ => "Something other than not found"
-  }
-)
-->Promise.done(res =>
-  switch res {
-  | Ok(_) => Js.log("Not going to log this")
-  | Error(msg) => Js.log(msg) // "Not found"
-  }
-)
-```
+The same as [`Promise.reject(error)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject) in JavaScript.
 
 ### `Promise.catch: (Promise.t<'a>, exn => 'b) => Promise.t<result<'a, 'b>>`
 
@@ -129,11 +113,37 @@ This works the same as in `try..catch`: https://rescript-lang.org/docs/manual/la
 
 `promise->Promise.map(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScript, where `fn` returns something other than promise.
 
-Note: if `fn` returns a promise, will reject with `Promise.NestedPromise`!
+Note: if `fn` returns a promise, will reject with `Promise.NestedPromise` (same as with `Promise.resolve` above)!
 
 ### `Promise.done: (Promise.t<'a>, 'a => unit) => unit`
 
-TODO
+- If the given promise resolves with a value, calls the provided callback with that value as an argument.
+- If the given promise rejects, logs the error and crashes the Node process.
+- If the provided callback raises an exception, logs the exception and crashes the Node process.
+
+The idea is that you catch the recoverable errors with `Promise.catch` / `try..catch`,
+and in the case of unrecoverable errors, we crash the process:
+
+```rescript
+promise
+->Promise.catch(catchRecoverable)
+->Promise.done(result => {
+  try {
+    handleResult(result)
+  } catch {
+  | SomeRecoverableException => handleRecoverable()
+  }
+})
+```
+
+And if you don't expect any errors:
+
+```rescript
+promise
+->Promise.done(result => {
+  handleResult(result)
+})
+```
 
 ### `Promise.race: array<Promise.t<'a>> => Promise.t<'a>`
 
@@ -149,18 +159,46 @@ The same as `Promise.all`, but with a two-value tuple instead of an array.
 
 There're also `all3`, `all4`, `all5`, and `all6` with the corresponding numbers of arguments.
 
+### `Promise.sequence: array<unit => Promise.t<'a>> => Promise.t<array<'a>>`
+
+Given an array of functions that return promises, calls the functions in sequence:
+calls the next function only after the promise returned by the previous function resolves.
+
+If any of the promises reject, does not call the remaining functions,
+and the result promise rejects with the same error.
+
+In case of successful completion of all promises,
+the result promise contains an array of values produced by the promises.
+
+```rescript
+Promise.sequence([
+  () => Promise.resolve(1),
+  () => Promise.resolve(2),
+])->Promise.done(arr => {
+  Js.log(arr) // [1, 2]
+})
+```
+
 ### `Promise.chainOk: (Promise.t<result<'a, 'b>>, 'a => Promise.t<result<'c, 'b>>) => Promise.t<result<'c, 'b>>`
 
-TODO
+The same as `Promise.chain`, but calls the provided function with `val` as an argument
+only if the original promise contains an `Ok(val)`.
+
+```rescript
+Promise.resolve(Ok(1))->Promise.chainOk(x => Promise.resolve(Ok(x + 1))) // Promise(Ok(2))
+
+// The function hasn't been called
+Promise.resolve(Error(1))->Promise.chainOk(x => Promise.resolve(Ok(x + 1))) // Promise(Error(1))
+```
 
 ### `Promise.mapOk: (Promise.t<result<'a, 'b>>, 'a => result<'c, 'b>) => Promise.t<result<'c, 'b>>`
 
-TODO
+The same as `Promise.map`, but calls the provided function with `val` as an argument
+only if the original promise contains an `Ok(val)`.
 
-### `Promise.mergeErrors: Promise.t<result<result<'a, 'b>, 'b>> => Promise.t<result<'a, 'b>>`
+```rescript
+Promise.resolve(Ok(1))->Promise.mapOk(x => Ok(x + 1)) // Promise(Ok(2))
 
-TODO
-
-### `Promise.sequence: array<unit => Promise.t<'a>> => Promise.t<array<'a>>`
-
-TODO
+// The function hasn't been called
+Promise.resolve(Error(1))->Promise.mapOk(x => Ok(x + 1)) // Promise(Error(1))
+```

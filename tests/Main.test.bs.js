@@ -312,54 +312,6 @@ test("Promise.mapOk + Ok", (function () {
                     }));
       }));
 
-test("Promise.mergeErrors + Error", (function () {
-        expect.assertions(1);
-        return $$Promise.map($$Promise.mergeErrors($$Promise.resolve({
-                            TAG: /* Error */1,
-                            _0: 1
-                          })), (function (x) {
-                      expect(x).toEqual({
-                            TAG: /* Error */1,
-                            _0: 1
-                          });
-                      
-                    }));
-      }));
-
-test("Promise.mergeErrors + Ok(Error)", (function () {
-        expect.assertions(1);
-        return $$Promise.map($$Promise.mergeErrors($$Promise.resolve({
-                            TAG: /* Ok */0,
-                            _0: {
-                              TAG: /* Error */1,
-                              _0: 1
-                            }
-                          })), (function (x) {
-                      expect(x).toEqual({
-                            TAG: /* Error */1,
-                            _0: 1
-                          });
-                      
-                    }));
-      }));
-
-test("Promise.mergeErrors + Ok(Ok)", (function () {
-        expect.assertions(1);
-        return $$Promise.map($$Promise.mergeErrors($$Promise.resolve({
-                            TAG: /* Ok */0,
-                            _0: {
-                              TAG: /* Ok */0,
-                              _0: 1
-                            }
-                          })), (function (x) {
-                      expect(x).toEqual({
-                            TAG: /* Ok */0,
-                            _0: 1
-                          });
-                      
-                    }));
-      }));
-
 test("Promise.sequence", (function () {
         expect.assertions(2);
         var events = [];

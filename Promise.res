@@ -87,15 +87,6 @@ let chainOk = (promise, fn) =>
   )
 let mapOk = (promise, fn) => promise->chainOk(val => val->fn->resolve)
 
-let mergeErrors = promise =>
-  promise->chain(res =>
-    switch res {
-    | Error(e) => Error(e)
-    | Ok(Error(e)) => Error(e)
-    | Ok(Ok(x)) => Ok(x)
-    }->resolve
-  )
-
 let sequence = arr => {
   let rec helper = (result, i) =>
     if i === arr->Js.Array2.length {

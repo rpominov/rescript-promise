@@ -187,24 +187,6 @@ testPromise("Promise.mapOk + Ok", () => {
   Promise.resolve(Ok(1))->Promise.mapOk(x => Ok(x + 1))->Promise.map(x => expect(x)->toEqual(Ok(2)))
 })
 
-testPromise("Promise.mergeErrors + Error", () => {
-  expectAssertions(1)
-
-  Promise.resolve(Error(1))->Promise.mergeErrors->Promise.map(x => expect(x)->toEqual(Error(1)))
-})
-
-testPromise("Promise.mergeErrors + Ok(Error)", () => {
-  expectAssertions(1)
-
-  Promise.resolve(Ok(Error(1)))->Promise.mergeErrors->Promise.map(x => expect(x)->toEqual(Error(1)))
-})
-
-testPromise("Promise.mergeErrors + Ok(Ok)", () => {
-  expectAssertions(1)
-
-  Promise.resolve(Ok(Ok(1)))->Promise.mergeErrors->Promise.map(x => expect(x)->toEqual(Ok(1)))
-})
-
 testPromise("Promise.sequence", () => {
   expectAssertions(2)
 

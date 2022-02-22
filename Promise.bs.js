@@ -108,28 +108,6 @@ function mapOk(promise, fn) {
               }));
 }
 
-function mergeErrors(promise) {
-  return chain(promise, (function (res) {
-                var tmp;
-                if (res.TAG === /* Ok */0) {
-                  var e = res._0;
-                  tmp = e.TAG === /* Ok */0 ? ({
-                        TAG: /* Ok */0,
-                        _0: e._0
-                      }) : ({
-                        TAG: /* Error */1,
-                        _0: e._0
-                      });
-                } else {
-                  tmp = {
-                    TAG: /* Error */1,
-                    _0: res._0
-                  };
-                }
-                return resolve(tmp);
-              }));
-}
-
 function sequence(arr) {
   var helper = function (result, i) {
     if (i === arr.length) {
@@ -194,6 +172,5 @@ exports.map = map;
 exports.done = done;
 exports.chainOk = chainOk;
 exports.mapOk = mapOk;
-exports.mergeErrors = mergeErrors;
 exports.sequence = sequence;
 /* process Not a pure module */
