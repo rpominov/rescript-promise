@@ -36,4 +36,4 @@ let mapOk: (t<result<'a, 'b>>, 'a => result<'c, 'b>) => t<result<'c, 'b>>
 
 let mergeErrors: t<result<result<'a, 'b>, 'b>> => t<result<'a, 'b>>
 
-let sequence: array<unit => t<'a>> => t<Js.Array2.t<'a>>
+let sequence: array<unit => t<'a>> => t<array<'a>>
