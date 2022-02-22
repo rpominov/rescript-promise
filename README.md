@@ -8,7 +8,7 @@ Features:
 
 - Does not allow to create `Promise.t<Promise.t<'a>>` as this is not possible in the underlying JavaScript implementation. The library will throw an exception if you try to create such a value.
 - Provides some utilities for `Promise.t<result<'a, 'b>>`.
-- Might not work in the browser as it uses some node APIs like `process.exti()`
+- Might not work in the browser as it uses some node APIs like `process.exit()`
 
 ## Installation
 
@@ -118,16 +118,18 @@ Promise.make(_ => {
 })
 ```
 
-Note that the callback gets a ReScript exception as an argument, even if original promise contained a JavaScript `Error`.
+Note that the callback gets a ReScript exception as an argument, even if the original promise contained a JavaScript `Error`.
 This works the same as in `try..catch`: https://rescript-lang.org/docs/manual/latest/exception#catching-js-exceptions
 
 ### `Promise.chain: (Promise.t<'a>, 'a => Promise.t<'b>) => Promise.t<'b>`
 
-TODO
+`promise->Promise.chain(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScrip, where `fn` returns a promise.
 
 ### `Promise.map: (Promise.t<'a>, 'a => 'b) => Promise.t<'b>`
 
-TODO
+`promise->Promise.map(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScrip, where `fn` returns something other than promise.
+
+Note: if `fn` returns a promise, will reject with `Promise.NestedPromise`!
 
 ### `Promise.done: (Promise.t<'a>, 'a => unit) => unit`
 
@@ -135,19 +137,15 @@ TODO
 
 ### `Promise.race: array<Promise.t<'a>> => Promise.t<'a>`
 
-https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-
-TODO
+The same as [`Promise.race(array)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race) in JavaScrip.
 
 ### `Promise.all: array<Promise.t<'a>> => Promise.t<array<'a>>`
 
-https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-
-TODO
+The same as [`Promise.all(array)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) in JavaScrip.
 
 ### `Promise.all2: ((Promise.t<'a>, Promise.t<'b>)) => Promise.t<('a, 'b)>`
 
-TODO
+The same as `Promise.all`, but with a two-value tuple instead of an array.
 
 There're also `all3`, `all4`, `all5`, and `all6` with the corresponding numbers of arguments.
 
