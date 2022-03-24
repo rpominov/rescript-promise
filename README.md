@@ -5,7 +5,7 @@ Another Promise bindings for ReScript. I wrote this primarily for myself to use 
 Features / design decisions:
 
 - Does not allow to create `Promise.t<Promise.t<'a>>` as this is not possible in the underlying JavaScript implementation. The library will throw an exception if you try to create such a value.
-- Native `Js.Exn` is preferred to ReScript exceptions. Because of the better support in the environment. For example, stack is printed correctly for uncaught exceptions in Node.
+- Native `Js.Exn` is preferred to ReScript exceptions. Because of the better support in the environment. For example, stack is printed correctly for uncaught exceptions in NodeJS.
 - Provides some utilities for `Promise.t<result<'a, 'b>>`.
 - Might not work in the browser as it uses some NodeJS APIs like `process.exit()`.
 
