@@ -31,6 +31,29 @@ testPromise("Promise.make + nested promise", () => {
   })
 })
 
+testPromise("Promise.make + nested promise (async)", () => {
+  expectAssertions(1)
+
+  Promise.make(resolve => Js.Global.setTimeout(() => resolve(Promise.resolve(10)), 0)->ignore)
+  ->Promise.catch(exn =>
+    switch exn {
+    | Js.Exn.Error(err) => Ok(err->Js.Exn.message)
+    | _ => Error("Didn't throw a correct exception")
+    }
+  )
+  ->Promise.map(result => {
+    expect(result)->toEqual(
+      Error(
+        Ok(
+          Some(
+            "Cannot create a Promise containing another Promise as this will break ReScript static types",
+          ),
+        ),
+      ),
+    )
+  })
+})
+
 testPromise("Promise.resolve", () => {
   expectAssertions(1)
 
@@ -39,26 +62,27 @@ testPromise("Promise.resolve", () => {
   })
 })
 
-test("Promise.resolve + nested promise", () => {
+testPromise("Promise.resolve + nested promise", () => {
   expectAssertions(1)
 
-  let nestedPromise = Promise.resolve(10)
-
-  let result = try {
-    Promise.resolve(nestedPromise)->ignore
-    Error("Didn't throw")
-  } catch {
-  | Js.Exn.Error(err) => Ok(err->Js.Exn.message)
-  | _ => Error("Didn't throw a correct exception")
-  }
-
-  expect(result)->toEqual(
-    Ok(
-      Some(
-        "Cannot create a Promise containing another Promise as this will break ReScript static types",
-      ),
-    ),
+  Promise.resolve(Promise.resolve(10))
+  ->Promise.catch(exn =>
+    switch exn {
+    | Js.Exn.Error(err) => Ok(err->Js.Exn.message)
+    | _ => Error("Didn't throw a correct exception")
+    }
   )
+  ->Promise.map(result => {
+    expect(result)->toEqual(
+      Error(
+        Ok(
+          Some(
+            "Cannot create a Promise containing another Promise as this will break ReScript static types",
+          ),
+        ),
+      ),
+    )
+  })
 })
 
 testPromise("Promise.reject / Promise.catch", () => {

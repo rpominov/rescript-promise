@@ -4,7 +4,6 @@
 var Curry = require("rescript/lib/js/curry.js");
 var Js_exn = require("rescript/lib/js/js_exn.js");
 var $$Promise = require("../Promise.bs.js");
-var Caml_js_exceptions = require("rescript/lib/js/caml_js_exceptions.js");
 
 test("Promise.make", (function () {
         expect.assertions(1);
@@ -44,6 +43,37 @@ test("Promise.make + nested promise", (function () {
                     }));
       }));
 
+test("Promise.make + nested promise (async)", (function () {
+        expect.assertions(1);
+        return $$Promise.map($$Promise.$$catch($$Promise.make(function (resolve) {
+                            setTimeout((function (param) {
+                                    return Curry._1(resolve, $$Promise.resolve(10));
+                                  }), 0);
+                            
+                          }), (function (exn) {
+                          if (exn.RE_EXN_ID === Js_exn.$$Error) {
+                            return {
+                                    TAG: /* Ok */0,
+                                    _0: exn._1.message
+                                  };
+                          } else {
+                            return {
+                                    TAG: /* Error */1,
+                                    _0: "Didn't throw a correct exception"
+                                  };
+                          }
+                        })), (function (result) {
+                      expect(result).toEqual({
+                            TAG: /* Error */1,
+                            _0: {
+                              TAG: /* Ok */0,
+                              _0: "Cannot create a Promise containing another Promise as this will break ReScript static types"
+                            }
+                          });
+                      
+                    }));
+      }));
+
 test("Promise.resolve", (function () {
         expect.assertions(1);
         return $$Promise.map($$Promise.resolve(10), (function (x) {
@@ -54,30 +84,28 @@ test("Promise.resolve", (function () {
 
 test("Promise.resolve + nested promise", (function () {
         expect.assertions(1);
-        var nestedPromise = $$Promise.resolve(10);
-        var result;
-        try {
-          $$Promise.resolve(nestedPromise);
-          result = {
-            TAG: /* Error */1,
-            _0: "Didn't throw"
-          };
-        }
-        catch (raw_err){
-          var err = Caml_js_exceptions.internalToOCamlException(raw_err);
-          result = err.RE_EXN_ID === Js_exn.$$Error ? ({
-                TAG: /* Ok */0,
-                _0: err._1.message
-              }) : ({
-                TAG: /* Error */1,
-                _0: "Didn't throw a correct exception"
-              });
-        }
-        expect(result).toEqual({
-              TAG: /* Ok */0,
-              _0: "Cannot create a Promise containing another Promise as this will break ReScript static types"
-            });
-        
+        return $$Promise.map($$Promise.$$catch($$Promise.resolve($$Promise.resolve(10)), (function (exn) {
+                          if (exn.RE_EXN_ID === Js_exn.$$Error) {
+                            return {
+                                    TAG: /* Ok */0,
+                                    _0: exn._1.message
+                                  };
+                          } else {
+                            return {
+                                    TAG: /* Error */1,
+                                    _0: "Didn't throw a correct exception"
+                                  };
+                          }
+                        })), (function (result) {
+                      expect(result).toEqual({
+                            TAG: /* Error */1,
+                            _0: {
+                              TAG: /* Ok */0,
+                              _0: "Cannot create a Promise containing another Promise as this will break ReScript static types"
+                            }
+                          });
+                      
+                    }));
       }));
 
 test("Promise.reject / Promise.catch", (function () {

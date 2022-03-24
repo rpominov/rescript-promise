@@ -48,7 +48,7 @@ Just an alias for `Js.Promise.t<'a>`
 
 The same as [`Promise.resolve(value)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve) in JavaScript.
 
-If the given value is a promise-like object, will raise a `Js.Exn` exception.
+If the given value is a promise-like object, will create a rejected promise with a `Js.Exn` exception.
 This is necessary because the underlying JavaScript implementation
 automatically flattens any `Promise.t<Promise.t<'a>>` into a `Promise.t<'a>`,
 but this special case behavior cannot be expressed with ReScript type system.
@@ -68,8 +68,8 @@ but with any object that has a `then` property, that happens to be a function.
 The reject callback is not provided by design.
 Resolve with a `result`'s `Error` instead or use `Js.Promise.make`.
 
-If you pass a promise into `resolve()`,
-a `Js.Exn` exception will be raised (same as with `Promise.resolve` above)!
+If you pass a promise into `resolve()`, the promise will reject with
+a `Js.Exn` exception instead of resolving (same as with `Promise.resolve` above)!
 
 ### `Promise.reject: Js.Exn.t => Promise.t<'a>`
 

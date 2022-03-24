@@ -1,20 +1,26 @@
 type t<+'a> = Js.Promise.t<'a>
 
-type unknown
-let isPromiseLike: unknown => bool = %raw(`(obj) => obj != null && typeof obj.then === 'function'`)
-
-@scope("Promise") @val external resolve: 'a => t<'a> = "resolve"
-let resolve = x => {
-  if isPromiseLike(x->Obj.magic) {
-    Js.Exn.raiseError(
-      "Cannot create a Promise containing another Promise as this will break ReScript static types",
-    )
-  }
-  resolve(x)
-}
+let isPromiseLike = obj =>
+  Js.typeof(obj) === "object" &&
+  obj->Obj.magic !== Js.Null.empty &&
+  Js.typeof((obj->Obj.magic)["then"]) === "function"
 
 @new external makeJsError: string => Js.Exn.t = "Error"
 @scope("Promise") @val external reject: Js.Exn.t => t<'a> = "reject"
+
+@scope("Promise") @val external resolve: 'a => t<'a> = "resolve"
+let resolve = x => {
+  if isPromiseLike(x) {
+    reject(
+      makeJsError(
+        "Cannot create a Promise containing another Promise as this will break ReScript static types",
+      ),
+    )
+  } else {
+    resolve(x)
+  }
+}
+
 @scope("Promise") @val external all: array<t<'a>> => t<array<'a>> = "all"
 @scope("Promise") @val external all2: ((t<'a>, t<'b>)) => t<('a, 'b)> = "all"
 @scope("Promise") @val external all3: ((t<'a>, t<'b>, t<'c>)) => t<('a, 'b, 'c)> = "all"
@@ -26,17 +32,20 @@ external all6: ((t<'a>, t<'b>, t<'c>, t<'d>, t<'e>, t<'f>)) => t<('a, 'b, 'c, 'd
 @scope("Promise") @val external race: array<t<'a>> => t<'a> = "race"
 
 @new
-external make: (@uncurry (((. 'a) => unit) => unit)) => t<'a> = "Promise"
+external make: (@uncurry ((. 'a) => unit, (. Js.Exn.t) => unit) => unit) => t<'a> = "Promise"
 
 let make = fn =>
-  make(resolve =>
+  make((resolve, reject) =>
     fn(x => {
-      if isPromiseLike(x->Obj.magic) {
-        Js.Exn.raiseError(
-          "Cannot create a Promise containing another Promise as this will break ReScript static types",
+      if isPromiseLike(x) {
+        reject(.
+          makeJsError(
+            "Cannot create a Promise containing another Promise as this will break ReScript static types",
+          ),
         )
+      } else {
+        resolve(. x)
       }
-      resolve(. x)
     })
   )
 

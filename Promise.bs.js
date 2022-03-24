@@ -7,22 +7,30 @@ var Process = require("process");
 var Caml_array = require("rescript/lib/js/caml_array.js");
 var Caml_js_exceptions = require("rescript/lib/js/caml_js_exceptions.js");
 
-var isPromiseLike = ((obj) => obj != null && typeof obj.then === 'function');
+function isPromiseLike(obj) {
+  if (typeof obj === "object" && obj !== null) {
+    return typeof obj.then === "function";
+  } else {
+    return false;
+  }
+}
 
 function resolve(x) {
   if (isPromiseLike(x)) {
-    Js_exn.raiseError("Cannot create a Promise containing another Promise as this will break ReScript static types");
+    return Promise.reject(new Error("Cannot create a Promise containing another Promise as this will break ReScript static types"));
+  } else {
+    return Promise.resolve(x);
   }
-  return Promise.resolve(x);
 }
 
 function make(fn) {
-  return new Promise((function (resolve) {
+  return new Promise((function (resolve, reject) {
                 return Curry._1(fn, (function (x) {
                               if (isPromiseLike(x)) {
-                                Js_exn.raiseError("Cannot create a Promise containing another Promise as this will break ReScript static types");
+                                return reject(new Error("Cannot create a Promise containing another Promise as this will break ReScript static types"));
+                              } else {
+                                return resolve(x);
                               }
-                              return resolve(x);
                             }));
               }));
 }
