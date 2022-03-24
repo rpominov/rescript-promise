@@ -1,25 +1,20 @@
 type t<+'a> = Js.Promise.t<'a>
 
-type promiseLike
-exception NestedPromise({rescripMessage: string, nestedPromise: promiseLike})
-
 type unknown
 let isPromiseLike: unknown => bool = %raw(`(obj) => obj != null && typeof obj.then === 'function'`)
 
 @scope("Promise") @val external resolve: 'a => t<'a> = "resolve"
 let resolve = x => {
   if isPromiseLike(x->Obj.magic) {
-    raise(
-      NestedPromise({
-        rescripMessage: "Cannot create a Promise containing another Promise as this will break ReScript static types",
-        nestedPromise: x->Obj.magic,
-      }),
+    Js.Exn.raiseError(
+      "Cannot create a Promise containing another Promise as this will break ReScript static types",
     )
   }
   resolve(x)
 }
 
-@scope("Promise") @val external reject: exn => t<'a> = "reject"
+@new external makeJsError: string => Js.Exn.t = "Error"
+@scope("Promise") @val external reject: Js.Exn.t => t<'a> = "reject"
 @scope("Promise") @val external all: array<t<'a>> => t<array<'a>> = "all"
 @scope("Promise") @val external all2: ((t<'a>, t<'b>)) => t<('a, 'b)> = "all"
 @scope("Promise") @val external all3: ((t<'a>, t<'b>, t<'c>)) => t<('a, 'b, 'c)> = "all"
@@ -37,11 +32,8 @@ let make = fn =>
   make(resolve =>
     fn(x => {
       if isPromiseLike(x->Obj.magic) {
-        raise(
-          NestedPromise({
-            rescripMessage: "Cannot create a Promise containing another Promise as this will break ReScript static types",
-            nestedPromise: x->Obj.magic,
-          }),
+        Js.Exn.raiseError(
+          "Cannot create a Promise containing another Promise as this will break ReScript static types",
         )
       }
       resolve(. x)

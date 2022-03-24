@@ -1,14 +1,13 @@
 # @rpominov/rescript-promise
 
-Another Promise bindings for ReScript.
+Another Promise bindings for ReScript. I wrote this primarily for myself to use in my own projects, so the API can be opinionated and unconventional in some places. Also, **the API is not stable** as I’m still exploring the best way to work with promises in ReScript.
 
-**The API is not stable yet!**
-
-Features:
+Features / design decisions:
 
 - Does not allow to create `Promise.t<Promise.t<'a>>` as this is not possible in the underlying JavaScript implementation. The library will throw an exception if you try to create such a value.
+- Native `Js.Exn` is preferred to ReScript exceptions. Because of the better support in the environment. For example, stack is printed correctly for uncaught exceptions in Node.
 - Provides some utilities for `Promise.t<result<'a, 'b>>`.
-- Might not work in the browser as it uses some NodeJS APIs like `process.exit()`
+- Might not work in the browser as it uses some NodeJS APIs like `process.exit()`.
 
 ## Installation
 
@@ -49,7 +48,7 @@ Just an alias for `Js.Promise.t<'a>`
 
 The same as [`Promise.resolve(value)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve) in JavaScript.
 
-If the given value is a promise-like object, will raise a `Promise.NestedPromise` exception.
+If the given value is a promise-like object, will raise a `Js.Exn` exception.
 This is necessary because the underlying JavaScript implementation
 automatically flattens any `Promise.t<Promise.t<'a>>` into a `Promise.t<'a>`,
 but this special case behavior cannot be expressed with ReScript type system.
@@ -70,11 +69,15 @@ The reject callback is not provided by design.
 Resolve with a `result`'s `Error` instead or use `Js.Promise.make`.
 
 If you pass a promise into `resolve()`,
-a `Promise.NestedPromise` exception will be raised (same as with `Promise.resolve` above)!
+a `Js.Exn` exception will be raised (same as with `Promise.resolve` above)!
 
-### `Promise.reject: exn => Promise.t<'a>`
+### `Promise.reject: Js.Exn.t => Promise.t<'a>`
 
 The same as [`Promise.reject(error)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject) in JavaScript.
+
+### `Promise.makeJsError: string => Js.Exn.t`
+
+The same as `new Error(string)` in JavaScript. Added to use in conjunction with `Promise.reject`.
 
 ### `Promise.catch: (Promise.t<'a>, exn => 'b) => Promise.t<result<'a, 'b>>`
 
@@ -113,7 +116,7 @@ This works the same as in `try..catch`: https://rescript-lang.org/docs/manual/la
 
 `promise->Promise.map(fn)` is the same as [`promise.then(fn)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) in JavaScript, where `fn` returns something other than promise.
 
-Note: if `fn` returns a promise, will reject with `Promise.NestedPromise` (same as with `Promise.resolve` above)!
+Note: if `fn` returns a promise, will reject with `Js.Exn` (same as with `Promise.resolve` above)!
 
 ### `Promise.done: (Promise.t<'a>, 'a => unit) => unit`
 

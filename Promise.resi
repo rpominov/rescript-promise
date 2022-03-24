@@ -1,11 +1,10 @@
 type t<+'a> = Js.Promise.t<'a>
 
-type promiseLike
-exception NestedPromise({rescripMessage: string, nestedPromise: promiseLike})
-
 let resolve: 'a => t<'a>
 
-let reject: exn => t<'a>
+let makeJsError: string => Js.Exn.t
+
+let reject: Js.Exn.t => t<'a>
 
 let race: array<t<'a>> => t<'a>
 

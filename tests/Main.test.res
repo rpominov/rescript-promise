@@ -1,13 +1,5 @@
 open Jest
 
-// testAsync("make works", done => {
-//   expectAssertions(1)
-//   Promise.make(resolve => resolve(10))->Promise.done(x => {
-//     expect(x)->toEqual(11)
-//     done(.)
-//   })
-// })
-
 testPromise("Promise.make", () => {
   expectAssertions(1)
 
@@ -19,19 +11,23 @@ testPromise("Promise.make", () => {
 testPromise("Promise.make + nested promise", () => {
   expectAssertions(1)
 
-  let nestedPromise = Promise.resolve(10)
-  Promise.make(resolve => resolve(nestedPromise))
+  Promise.make(resolve => resolve(Promise.resolve(10)))
   ->Promise.catch(exn =>
     switch exn {
-    | Promise.NestedPromise(obj) => Ok(obj.nestedPromise)
+    | Js.Exn.Error(err) => Ok(err->Js.Exn.message)
     | _ => Error("Didn't throw a correct exception")
     }
   )
   ->Promise.map(result => {
-    switch result {
-    | Ok(_) => Js.Exn.raiseError("Didn't throw")
-    | Error(result) => expect(result->Belt.Result.getExn)->toBe(nestedPromise->Obj.magic)
-    }
+    expect(result)->toEqual(
+      Error(
+        Ok(
+          Some(
+            "Cannot create a Promise containing another Promise as this will break ReScript static types",
+          ),
+        ),
+      ),
+    )
   })
 })
 
@@ -52,19 +48,32 @@ test("Promise.resolve + nested promise", () => {
     Promise.resolve(nestedPromise)->ignore
     Error("Didn't throw")
   } catch {
-  | Promise.NestedPromise(obj) => Ok(obj.nestedPromise)
+  | Js.Exn.Error(err) => Ok(err->Js.Exn.message)
   | _ => Error("Didn't throw a correct exception")
   }
 
-  expect(result->Belt.Result.getExn)->toBe(nestedPromise->Obj.magic)
+  expect(result)->toEqual(
+    Ok(
+      Some(
+        "Cannot create a Promise containing another Promise as this will break ReScript static types",
+      ),
+    ),
+  )
 })
 
 testPromise("Promise.reject / Promise.catch", () => {
   expectAssertions(1)
 
-  Promise.reject(Not_found)
+  let err = Promise.makeJsError("Test")
+
+  Promise.reject(err)
   ->Promise.catch(x => x)
-  ->Promise.map(x => expect(x)->toEqual(Error(Not_found)))
+  ->Promise.map(x =>
+    switch x {
+    | Error(Js.Exn.Error(e)) => expect(e)->toBe(err)
+    | _ => Js.Exn.raiseError("Should not happen")
+    }
+  )
 })
 
 testPromise("Promise.race", () => {
