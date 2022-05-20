@@ -24,20 +24,6 @@ In your `bsconfig.json` add it to `bs-dependencies`
 }
 ```
 
-## Example
-
-```rescript
-Promise.make(resolve => Js.Global.setTimeout(() => {resolve(1)}, 1000)->ignore)
-->Promise.chain(x => Ok(x)->Promise.resolve)
-->Promise.mapOk(x => Ok(x + 1))
-->Promise.done(result =>
-  switch result {
-  | Ok(x) => Js.log(x)
-  | Error(message) => Js.log(message)
-  }
-)
-```
-
 ## API
 
 ### `type Promise.t<'a>`
